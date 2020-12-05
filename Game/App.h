@@ -14,6 +14,7 @@
 #include "deque"
 class App : public GlutApp
 {
+    TexRect * background;
     std::vector<GameObject *> objects;
     SpaceShip *razorcrest;
     std::vector<SpaceShip *> xwings;
@@ -35,7 +36,7 @@ public:
     friend void xwingTimer(int id);
     friend void xwingFireTimer(int id);
     friend void oscillate(SpaceShip *spaceship, int start, int x);
-    // friend void explosionTimer(int id);
+    friend void explosionTimer(int id);
     friend void astroidTimer(int id);
     friend void astroidSpawner(int id);
     friend void moveAstroids(std::deque<Astroid *> astroids);
