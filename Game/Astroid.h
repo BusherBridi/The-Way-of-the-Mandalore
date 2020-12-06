@@ -79,5 +79,9 @@ public:
     // Collision:
     void collide()
     {
+        // float explosionX = this->getX() + this->get_w() / 2;
+        // float explosionY = this->getY() + this->get_h() / 2;
+        // explosion = new Sprite("images/explosion.png", 5, 5, explosionX, explosionY, 0.5, 0.5);
+        // std::cout << "Collision detected, coords: " << explosionX << ", " << explosionY;
     }
 };

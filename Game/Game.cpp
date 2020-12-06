@@ -7,6 +7,7 @@
 
 static Game *singleton;
 int counter = 0;
+bool gameState = true;
 void razorcrestTimer(int id)
 {
     singleton->razorcrest->advance();
@@ -50,6 +51,7 @@ void explosionTimer(int id)
     if (singleton->razorcrest->get_explosionSprite()->isDone())
     {
         singleton->explosionVisible = false;
+        // delete singleton->razorcrest->get_explosionSprite();
         // exit(0);
     }
     glutTimerFunc(1000, explosionTimer, id);
@@ -76,7 +78,7 @@ void astroidSpawner(int id)
         {
             float yCoord = -0.5 + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (1 - (-1))));
 
-            singleton->astroids.push_back(new Astroid(1, yCoord, 0.2, 0.2, true, 10, 0.005, 5));
+            singleton->astroids.push_back(new Astroid(2, yCoord, 0.2, 0.2, true, 10, 0.005, 5));
         }
     }
     glutTimerFunc(1000, astroidSpawner, id);
@@ -128,7 +130,14 @@ Game::Game(int argc, char **argv, int width, int height, const char *title) : Gl
     xwingFireTimer(3);
     astroidTimer(5);
 }
-
+bool isGameOver(bool gameState){
+    if(!gameState){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
 void Game::draw() const
 {
     background->draw(0);
@@ -157,9 +166,14 @@ void Game::draw() const
 }
 void Game::idle()
 {
-    if (razorcrest->get_hitpoints() > 0)
+    if (razorcrest->get_hitpoints() > -100)
     {
-      
+        //Check xwings hit points
+      for(int i = 0; i< xwings.size(); i++){
+          if(xwings[i]->get_hitpoints() <= 0){
+              xwings.erase(xwings.begin()+i);
+          }
+      }
         for (int i = 0; i < astroids.size(); i++)
         {
             if (astroids[i]->get_hitpoints() <= 0)
@@ -219,6 +233,16 @@ void Game::idle()
                 razorcrest->reduce_hitpoints(astroids[i]->get_power());
                 astroids.erase(astroids.begin() + i);
             }
+            //Xwing hits astroid
+            for(int j = 0; j < xwings.size(); j++){
+                if(xwings[j]->contains(astroids[i]->getX(), astroids[i]->getY())){
+                    xwings[j]->reduce_hitpoints(astroids[i]->get_power());
+                    astroids.erase(astroids.begin()+i);
+                }
+                
+
+            }
+
         }
         astroidSpawner(6);
         moveAstroids(astroids);
@@ -235,7 +259,10 @@ void Game::idle()
         counter++;
     }
     else{
+        gameState = false;
+        
         // delete razorcrest;
+        
         std::cout<<"GAME OVER\n";
     }
 }

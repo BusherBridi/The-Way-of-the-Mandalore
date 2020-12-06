@@ -21,6 +21,8 @@ class Game : public GlutApp
     std::deque<Astroid *> astroids;
     // Sprite *explosion;
     bool explosionVisible = false;
+    bool gameState = true;
+    
 
 public:
     Game(int argc, char **argv, int width, int height, const char *title);
@@ -40,6 +42,12 @@ public:
     friend void astroidTimer(int id);
     friend void astroidSpawner(int id);
     friend void moveAstroids(std::deque<Astroid *> astroids);
+    bool getGameState(){
+        return gameState;
+    }
+    void setGameState(bool value){
+        gameState = value;
+    }
     ~Game();
 };
 
