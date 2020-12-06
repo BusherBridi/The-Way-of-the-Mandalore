@@ -8,6 +8,7 @@
 static Game *singleton;
 int counter = 0;
 bool gameState = true;
+bool gameStart = false;
 void razorcrestTimer(int id)
 {
     singleton->razorcrest->advance();
@@ -78,7 +79,7 @@ void astroidSpawner(int id)
         {
             float yCoord = -0.5 + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (1 - (-1))));
 
-            singleton->astroids.push_back(new Astroid(2, yCoord, 0.2, 0.2, true, 10, 0.005, 5));
+            singleton->astroids.push_back(new Astroid(2, yCoord, 0.2, 0.2, true, 2, 0.005, 1));
         }
     }
     glutTimerFunc(1000, astroidSpawner, id);
@@ -120,8 +121,10 @@ Game::Game(int argc, char **argv, int width, int height, const char *title) : Gl
 {
     background = new TexRect("images/background.png", -2, 1, 4, 2);
     razorcrest = new SpaceShip("images/razocrestFlight.png", 5, 1, 0, 0, 0.6, 0.3, true, 1, 0.01, 5, 0.6, -0.05);
-    xwings.push_back(new SpaceShip("images/xwingFlight.png", 1, 6, -1.7, 0.2, 0.6, 0.3, true, 10, 0.005, 2, 0.4, 0));
-    xwings.push_back(new SpaceShip("images/xwingFlight.png", 1, 6, -1.7, -0.12, 0.6, 0.3, true, 10, 0.005, 2, 0.4, 0));
+    xwings.push_back(new SpaceShip("images/xwingFlight.png", 1, 6, -1.7, 0.2, 0.6, 0.3, true, 10, 0.005, 1, 0.4, 0));
+    xwings.push_back(new SpaceShip("images/xwingFlight.png", 1, 6, -1.7, -0.12, 0.6, 0.3, true, 10, 0.005, 1, 0.4, 0));
+    playBtn = new TexRect("images/play.png", -0.2, -0.2, 0.5, 0.3);
+    healthbar = new Sprite("images/health_bar.png", 4, 3, -0.2, -0.8, 0.5, 0.2);
     // explosion = new Sprite("explosion.png", 5, 5, -0.8, 0.8, 0.5, 0.5);
     explosionVisible = false;
     singleton = this;
@@ -130,140 +133,168 @@ Game::Game(int argc, char **argv, int width, int height, const char *title) : Gl
     xwingFireTimer(3);
     astroidTimer(5);
 }
-bool isGameOver(bool gameState){
-    if(!gameState){
+bool isGameOver(bool gameState)
+{
+    if (!gameState)
+    {
         return true;
     }
-    else{
+    else
+    {
         return false;
     }
 }
 void Game::draw() const
 {
     background->draw(0);
-    razorcrest->draw(0.5);
-    for (int i = 0; i < xwings.size(); i++)
+    //display play btn if game hasnt started yet
+    if (gameStart == false)
     {
-        xwings[i]->draw(0.5);
+        playBtn->draw(1);
     }
-    razorcrest->moveProjectile();
-    for (int i = 0; i < xwings.size(); i++)
+    if (gameStart == true)
     {
-        xwings[i]->moveProjectile();
-    }
-    if (explosionVisible == true)
-    {
-        singleton->razorcrest->get_explosionSprite()->draw(0.6);
-    }
-    for (int i = 0; i < astroids.size(); i++)
-    {
-        astroids[i]->draw(0.5);
-    }
-    if (explosionVisible)
-    {
-        explosionTimer(4);
+        healthbar->draw(1);
+        razorcrest->draw(0.5);
+        for (int i = 0; i < xwings.size(); i++)
+        {
+            xwings[i]->draw(0.5);
+        }
+        razorcrest->moveProjectile();
+        for (int i = 0; i < xwings.size(); i++)
+        {
+            xwings[i]->moveProjectile();
+        }
+        if (explosionVisible == true)
+        {
+            singleton->razorcrest->get_explosionSprite()->draw(0.6);
+        }
+        for (int i = 0; i < astroids.size(); i++)
+        {
+            astroids[i]->draw(0.5);
+        }
+        if (explosionVisible)
+        {
+            explosionTimer(4);
+        }
     }
 }
 void Game::idle()
 {
-    if (razorcrest->get_hitpoints() > -100)
+    //wait till user presses play:
+    if (gameStart == true)
     {
-        //Check xwings hit points
-      for(int i = 0; i< xwings.size(); i++){
-          if(xwings[i]->get_hitpoints() <= 0){
-              xwings.erase(xwings.begin()+i);
-          }
-      }
-        for (int i = 0; i < astroids.size(); i++)
+        if (razorcrest->get_hitpoints() > -100)
         {
-            if (astroids[i]->get_hitpoints() <= 0)
+            //Check xwings hit points
+            for (int i = 0; i < xwings.size(); i++)
             {
-                astroids.erase(astroids.begin() + i);
-            }
-        }
-        for (int i = 0; i < xwings.size(); i++)
-        {
-            oscillate(xwings[i], i, counter);
-            for (int j = 0; j < xwings[i]->projectiles.size(); j++)
-            {
-                //Razorcrest hit by xwing projectile
-                if (razorcrest->contains(xwings[i]->projectiles[j]->getX(), xwings[i]->projectiles[j]->getY()))
+                if (xwings[i]->get_hitpoints() <= 0)
                 {
-
-                    // delete xwings[i]->projectiles[j];
-                    // xwings[i]->projectiles.pop_front();
-                    xwings[i]->projectiles.erase(xwings[i]->projectiles.begin() + j);
-                    razorcrest->collide();
-                    explosionVisible = true;
-                    explosionTimer(4);
-                    razorcrest->reduce_hitpoints(xwings[i]->get_power());
-                }
-                // Astroid hit by xwing projectile
-                for (int k = 0; k < astroids.size(); k++)
-                {
-                    if (astroids[k]->contains(xwings[i]->projectiles[j]->getX(), xwings[i]->projectiles[j]->getY()))
-                    {
-
-                        xwings[i]->projectiles.erase(xwings[i]->projectiles.begin() + j);
-                        astroids[k]->reduce_hitpoints(xwings[i]->get_power());
-                    }
+                    xwings.erase(xwings.begin() + i);
                 }
             }
-        }
-        //Astroid hit by razorcrest projectile
-        for (int i = 0; i < astroids.size(); i++)
-        {
-            for (int j = 0; j < razorcrest->projectiles.size(); j++)
+            for (int i = 0; i < astroids.size(); i++)
             {
-                if (astroids[i]->contains(razorcrest->projectiles[j]->getX(), razorcrest->projectiles[j]->getY()))
+                if (astroids[i]->get_hitpoints() <= 0)
                 {
-                    std::cout << "ASTROID HIT\n";
                     astroids.erase(astroids.begin() + i);
                 }
             }
-        }
-        for (int i = 0; i < astroids.size(); i++)
-        {
-            //Razorcrest hits astroid
-            if (razorcrest->contains(astroids[i]->getX(), astroids[i]->getY()))
+            for (int i = 0; i < xwings.size(); i++)
             {
-                razorcrest->collide();
-                explosionVisible = true;
-                explosionTimer(4);
-                razorcrest->reduce_hitpoints(astroids[i]->get_power());
-                astroids.erase(astroids.begin() + i);
-            }
-            //Xwing hits astroid
-            for(int j = 0; j < xwings.size(); j++){
-                if(xwings[j]->contains(astroids[i]->getX(), astroids[i]->getY())){
-                    xwings[j]->reduce_hitpoints(astroids[i]->get_power());
-                    astroids.erase(astroids.begin()+i);
+                oscillate(xwings[i], i, counter);
+                for (int j = 0; j < xwings[i]->projectiles.size(); j++)
+                {
+                    //Razorcrest hit by xwing projectile
+                    if (razorcrest->contains(xwings[i]->projectiles[j]->getX(), xwings[i]->projectiles[j]->getY()))
+                    {
+
+                        // delete xwings[i]->projectiles[j];
+                        // xwings[i]->projectiles.pop_front();
+                        xwings[i]->projectiles.erase(xwings[i]->projectiles.begin() + j);
+                        razorcrest->collide();
+
+                        explosionVisible = true;
+                        explosionTimer(4);
+                        razorcrest->reduce_hitpoints(xwings[i]->get_power());
+                        for (int x = 0; x < xwings[i]->get_power(); x++)
+                        {
+                            healthbar->advance();
+                        }
+                    }
+                    // Astroid hit by xwing projectile
+                    for (int k = 0; k < astroids.size(); k++)
+                    {
+                        if (astroids[k]->contains(xwings[i]->projectiles[j]->getX(), xwings[i]->projectiles[j]->getY()))
+                        {
+
+                            xwings[i]->projectiles.erase(xwings[i]->projectiles.begin() + j);
+                            astroids[k]->reduce_hitpoints(xwings[i]->get_power());
+                        }
+                    }
                 }
-                
-
             }
-
-        }
-        astroidSpawner(6);
-        moveAstroids(astroids);
-        razorcrest->moveProjectile();
-        //check bounds on astroids
-        for (int i = 0; i < astroids.size(); i++)
-        {
-            if (astroids[i]->getX() < -1.7)
+            //Astroid hit by razorcrest projectile
+            for (int i = 0; i < astroids.size(); i++)
             {
-                astroids.pop_front();
+                for (int j = 0; j < razorcrest->projectiles.size(); j++)
+                {
+                    if (astroids[i]->contains(razorcrest->projectiles[j]->getX(), razorcrest->projectiles[j]->getY()))
+                    {
+                        std::cout << "ASTROID HIT\n";
+                        astroids.erase(astroids.begin() + i);
+                    }
+                }
             }
+            for (int i = 0; i < astroids.size(); i++)
+            {
+                //Razorcrest hits astroid
+                if (razorcrest->contains(astroids[i]->getX(), astroids[i]->getY()))
+                {
+                    razorcrest->collide();
+                    explosionVisible = true;
+                    explosionTimer(4);
+                    razorcrest->reduce_hitpoints(astroids[i]->get_power());
+                    astroids.erase(astroids.begin() + i);
+                    for (int x = 0; x < astroids[i]->get_power(); x++)
+                    {
+                        healthbar->advance();
+                    }
+                    
+                }
+                //Xwing hits astroid
+                for (int j = 0; j < xwings.size(); j++)
+                {
+                    if (xwings[j]->contains(astroids[i]->getX(), astroids[i]->getY()))
+                    {
+                        xwings[j]->reduce_hitpoints(astroids[i]->get_power());
+                        astroids.erase(astroids.begin() + i);
+                    }
+                }
+            }
+            astroidSpawner(6);
+            moveAstroids(astroids);
+            razorcrest->moveProjectile();
+            //check bounds on astroids
+            for (int i = 0; i < astroids.size(); i++)
+            {
+                if (astroids[i]->getX() < -1.7)
+                {
+                    astroids.pop_front();
+                }
+            }
+            glutPostRedisplay();
+            counter++;
         }
-        glutPostRedisplay();
-        counter++;
-    }
-    else{
-        gameState = false;
-        
-        // delete razorcrest;
-        
-        std::cout<<"GAME OVER\n";
+        else
+        {
+            gameState = false;
+
+            // delete razorcrest;
+
+            std::cout << "GAME OVER\n";
+        }
     }
 }
 void Game::keyDown(unsigned char key, float x, float y)
@@ -271,6 +302,10 @@ void Game::keyDown(unsigned char key, float x, float y)
     if (key == 27)
     {
         exit(0);
+    }
+    if (key == 'x')
+    {
+        gameStart = true;
     }
     if (key == 'd')
     {

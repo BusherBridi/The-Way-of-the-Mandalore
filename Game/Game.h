@@ -15,6 +15,9 @@
 class Game : public GlutApp
 {
     TexRect * background;
+    TexRect * playBtn;
+    TexRect * gameOverBtn;
+    Sprite * healthbar;
     std::vector<GameObject *> objects;
     SpaceShip *razorcrest;
     std::vector<SpaceShip *> xwings;
@@ -31,7 +34,7 @@ public:
 
     void keyDown(unsigned char key, float x, float y);
     void keyUp(unsigned char key, float x, float y);
-
+    
     void idle();
 
     friend void razorcrestTimer(int id);
