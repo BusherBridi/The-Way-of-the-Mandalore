@@ -9,6 +9,10 @@ static Game *singleton;
 int counter = 0;
 bool gameState = true;
 bool gameStart = false;
+void exitTimer(int id){
+    glutTimerFunc(1000, exitTimer, id);
+    exit(0);
+}
 void razorcrestTimer(int id)
 {
     singleton->razorcrest->advance();
@@ -34,6 +38,7 @@ void xwingTimer(int id)
 }
 void xwingFireTimer(int id)
 {
+    if(gameState == true){
     for (int i = 0; i < singleton->xwings.size(); i++)
     {
         srand(time(0));
@@ -43,6 +48,7 @@ void xwingFireTimer(int id)
         }
     }
     glutTimerFunc(1000, xwingFireTimer, id);
+    }
 }
 void explosionTimer(int id)
 {
@@ -120,30 +126,33 @@ void oscillate(SpaceShip *spaceship, int start, int x)
 Game::Game(int argc, char **argv, int width, int height, const char *title) : GlutApp(argc, argv, width, height, title)
 {
     background = new TexRect("images/background.png", -2, 1, 4, 2);
-    razorcrest = new SpaceShip("images/razocrestFlight.png", 5, 1, 0, 0, 0.6, 0.3, true, 1, 0.01, 5, 0.6, -0.05);
+    razorcrest = new SpaceShip("images/razocrestFlight.png", 5, 1, 0, 0, 0.6, 0.3, true, 10, 0.01, 5, 0.6, -0.05);
     xwings.push_back(new SpaceShip("images/xwingFlight.png", 1, 6, -1.7, 0.2, 0.6, 0.3, true, 10, 0.005, 1, 0.4, 0));
     xwings.push_back(new SpaceShip("images/xwingFlight.png", 1, 6, -1.7, -0.12, 0.6, 0.3, true, 10, 0.005, 1, 0.4, 0));
     playBtn = new TexRect("images/play.png", -0.2, -0.2, 0.5, 0.3);
     healthbar = new Sprite("images/health_bar.png", 4, 3, -0.2, -0.8, 0.5, 0.2);
+    gameOverBtn = new TexRect("images/gameOver.png",-0.2,-0.2,0.5,0.3);
     // explosion = new Sprite("explosion.png", 5, 5, -0.8, 0.8, 0.5, 0.5);
     explosionVisible = false;
     singleton = this;
+    if(gameState == true){
     razorcrestTimer(1);
     xwingTimer(2);
     xwingFireTimer(3);
     astroidTimer(5);
-}
-bool isGameOver(bool gameState)
-{
-    if (!gameState)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
     }
 }
+// bool isGameOver(bool gameState)
+// {
+//     if (!gameState)
+//     {
+//         return true;
+//     }
+//     else
+//     {
+//         return false;
+//     }
+// }
 void Game::draw() const
 {
     background->draw(0);
@@ -152,7 +161,10 @@ void Game::draw() const
     {
         playBtn->draw(1);
     }
-    if (gameStart == true)
+    if(gameState == false){
+        gameOverBtn->draw(1);
+    }
+    else if (gameStart == true)
     {
         healthbar->draw(1);
         razorcrest->draw(0.5);
@@ -184,7 +196,7 @@ void Game::idle()
     //wait till user presses play:
     if (gameStart == true)
     {
-        if (razorcrest->get_hitpoints() > -100)
+        if (razorcrest->get_hitpoints() > 0 && gameState == true)
         {
             //Check xwings hit points
             for (int i = 0; i < xwings.size(); i++)
@@ -290,10 +302,11 @@ void Game::idle()
         else
         {
             gameState = false;
-
+            // exitTimer(6);
             // delete razorcrest;
+            
 
-            std::cout << "GAME OVER\n";
+            // std::cout << "GAME OVER\n";
         }
     }
 }
@@ -357,5 +370,8 @@ Game::~Game()
         delete astroids[i];
     }
     delete background;
+    delete playBtn;
+    delete gameOverBtn;
+    
     std::cout << "Exiting..." << std::endl;
 }

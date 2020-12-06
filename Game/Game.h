@@ -44,6 +44,7 @@ public:
     friend void explosionTimer(int id);
     friend void astroidTimer(int id);
     friend void astroidSpawner(int id);
+    friend void exitTimer(int id);
     friend void moveAstroids(std::deque<Astroid *> astroids);
     bool getGameState(){
         return gameState;
