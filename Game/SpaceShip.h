@@ -95,7 +95,10 @@ public:
     // combat:
     void fire()
     {
+        int MAX_NUM_PROJ = 4;
+        if(this->projectiles.size() < MAX_NUM_PROJ){
         this->projectiles.push_back(new Sprite("images/laserTravel.png", 7, 2, this->getX() + this->get_gunx(), this->getY() + this->get_guny(), 0.1, 0.2));
+        }
     }
     void moveProjectile()
     {
