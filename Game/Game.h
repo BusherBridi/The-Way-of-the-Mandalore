@@ -1,5 +1,5 @@
-#ifndef App_h
-#define App_h
+#ifndef Game_h
+#define Game_h
 
 #include <vector>
 #include "GlutApp.h"
@@ -12,7 +12,7 @@
 #include "Astroid.h"
 #include "vector"
 #include "deque"
-class App : public GlutApp
+class Game : public GlutApp
 {
     TexRect * background;
     std::vector<GameObject *> objects;
@@ -23,7 +23,7 @@ class App : public GlutApp
     bool explosionVisible = false;
 
 public:
-    App(int argc, char **argv, int width, int height, const char *title);
+    Game(int argc, char **argv, int width, int height, const char *title);
 
     void draw() const;
 
@@ -40,7 +40,7 @@ public:
     friend void astroidTimer(int id);
     friend void astroidSpawner(int id);
     friend void moveAstroids(std::deque<Astroid *> astroids);
-    ~App();
+    ~Game();
 };
 
 #endif

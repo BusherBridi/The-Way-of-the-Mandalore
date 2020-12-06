@@ -3,6 +3,7 @@
 #include <vector>
 #include <deque>
 #include "GameObject.h"
+#include "Sprite.h"
 
 class Astroid : public GameObject
 {
@@ -15,11 +16,10 @@ private:
 public:
     Astroid(float x, float y, float w, float h, bool collision, int hitpoints, float speed, int power) : GameObject("images/astroidSpriteSheet.png", 2, 2, x, y, w, h, collision)
     {
-        
+
         this->hitpoints = hitpoints;
         this->speed = speed;
         this->power = power;
-        
     }
 
     //Getters:
@@ -71,13 +71,13 @@ public:
     {
         this->setX(this->getX() + this->get_speed());
     }
-
+    //Combat:
+    void reduce_hitpoints(int damage)
+    {
+        this->set_hitpoints(this->get_hitpoints() - damage);
+    }
     // Collision:
     void collide()
     {
-        float explosionX = this->getX() + this->get_w() / 2;
-        float explosionY = this->getY() + this->get_h() / 2;
-        explosion = new Sprite("explosion.png", 5, 5, explosionX, explosionY, 0.5, 0.5);
-        std::cout << "Collision detected, coords: "<<explosionX<<", "<<explosionY;
     }
 };
