@@ -142,17 +142,6 @@ Game::Game(int argc, char **argv, int width, int height, const char *title) : Gl
     astroidTimer(5);
     }
 }
-// bool isGameOver(bool gameState)
-// {
-//     if (!gameState)
-//     {
-//         return true;
-//     }
-//     else
-//     {
-//         return false;
-//     }
-// }
 void Game::draw() const
 {
     background->draw(0);
@@ -241,8 +230,9 @@ void Game::idle()
                         if (astroids[k]->contains(xwings[i]->projectiles[j]->getX(), xwings[i]->projectiles[j]->getY()))
                         {
 
-                            xwings[i]->projectiles.erase(xwings[i]->projectiles.begin() + j);
+                            
                             astroids[k]->reduce_hitpoints(xwings[i]->get_power());
+                            // xwings[i]->projectiles.erase(xwings[i]->projectiles.begin() + j);
                         }
                     }
                 }
@@ -255,7 +245,8 @@ void Game::idle()
                     if (astroids[i]->contains(razorcrest->projectiles[j]->getX(), razorcrest->projectiles[j]->getY()))
                     {
                         std::cout << "ASTROID HIT\n";
-                        astroids.erase(astroids.begin() + i);
+                        astroids[i]->reduce_hitpoints(razorcrest->get_power());
+                        // astroids.erase(astroids.begin() + i);
                     }
                 }
             }
